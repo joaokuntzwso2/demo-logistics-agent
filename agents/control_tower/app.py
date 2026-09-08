@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 from contextlib import asynccontextmanager
 from typing import Any
 
@@ -16,6 +15,7 @@ from pydantic import BaseModel, Field
 
 from logistics_common.config import OPENAI_MODEL, llm_health, resolve_llm_config
 from logistics_common.core_client import CORE, LogisticsCoreError
+from logistics_common.runtime import custom_api_port
 
 log = logging.getLogger("transnova-control-tower")
 
@@ -105,7 +105,7 @@ def ready_payload() -> dict[str, Any]:
     return {
         "ok": True,
         "name": "transnova-network-control-tower",
-        "port": int(os.getenv("PORT", "8000")),
+        "port": custom_api_port(),
         "llm": llm_health(),
         "logistics_core": {"url": CORE.base_url, "api_key_set": bool(CORE.api_key), "reachable": core_reachable, "error": core_error},
         "interface": "custom-api",

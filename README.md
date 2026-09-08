@@ -191,14 +191,19 @@ pytest -q
 Expected result:
 
 ```text
-8 passed
+11 passed
 ```
 
 ---
 
 ## Run all components locally
 
-All Agent Manager workloads use port `8000` by default. For local development, run each application on a different port:
+Agent Manager uses two port conventions in this demo:
+
+- **Chat Agents** use the fixed Agent Manager `/chat` contract on **port `8000`**. Their Python entrypoints deliberately ignore the generic `PORT` variable.
+- **Custom API Agents** use the port configured in Agent Manager. This demo uses **port `8080`** for Logistics Core and Network Control Tower.
+
+For local development, run each application on a different port:
 
 | Port | Application |
 |---:|---|
@@ -236,7 +241,7 @@ source .venv/bin/activate
 export LOGISTICS_CORE_URL=http://localhost:8010
 export OPENAI_API_KEY_DEFAULT=<your-openai-key>
 export OPENAI_MODEL=gpt-4o
-PORT=8001 python -m agents.customer_service.main
+uvicorn agents.customer_service.app:app --host 0.0.0.0 --port 8001
 ```
 
 ### Terminal 3 — Shipment Exception Manager
@@ -246,7 +251,7 @@ source .venv/bin/activate
 export LOGISTICS_CORE_URL=http://localhost:8010
 export OPENAI_API_KEY_DEFAULT=<your-openai-key>
 export OPENAI_MODEL=gpt-4o
-PORT=8002 python -m agents.exception_manager.main
+uvicorn agents.exception_manager.app:app --host 0.0.0.0 --port 8002
 ```
 
 ### Terminal 4 — Network Control Tower
@@ -283,16 +288,26 @@ Python:       3.11
 
 Deploy **Logistics Core first**, because every functional agent depends on it.
 
-## 1 — Logistics Core Mock
+<!-- validated-amp-capacity -->
+### Validated local AMP prerequisites
+
+For the complete four-workload demo, especially when other demo agents already exist in the same AMP cluster, use **8 vCPU / 16 GB RAM**. The validated 4-vCPU setup eventually produced Kubernetes `FailedScheduling: Insufficient cpu`.
+
+Python Auto Instrumentation can add roughly a minute before Uvicorn starts. A short `0/1 Running` period is normal; use the application `READY` log and `1/1 Running` as the success criteria.
+
+> **Governed LLM mapping:** `OPENAI_URL` and `OPENAI_API_KEY` are the environment-variable names expected by the application. When an Agent Manager LLM Service Provider is attached, map/inject the provider URL and API key into those names. Do **not** manually set `OPENAI_URL=https://api.openai.com/v1` when using the governed WSO2 provider.
+
+
+## 1 — Logistics Core
 
 | Agent Manager field | Value |
 |---|---|
-| Name | `TransNova Logistics Core Mock` |
+| Name | `TransNova Logistics Core` |
 | Agent type | `Custom API Agent` |
 | Build type | Python |
 | Python | `3.11` |
 | Start command | `python -m mock_core.main` |
-| Port | `8000` |
+| Port | `8080` |
 | OpenAPI Spec Path | `mock_core/openapi.yaml` |
 | Auto Instrumentation | Optional / ON is fine |
 
@@ -339,6 +354,17 @@ LOGISTICS_CORE_URL=<Core base/invoke URL>
 LOGISTICS_CORE_API_KEY=<Core API key>
 ```
 
+<!-- chat-agent-health-check -->
+Do not configure a runtime port for platform-hosted Chat Agents. They must listen on `8000`. A healthy startup should show approximately:
+
+```text
+Uvicorn running on http://0.0.0.0:8000
+governed=true
+OPENAI_URL_set=true
+OPENAI_API_KEY_set=true
+logistics_core.reachable=true
+```
+
 ---
 
 ## 3 — Shipment Exception Manager
@@ -361,7 +387,7 @@ Use the same LLM and Logistics Core configuration as the Customer Experience Age
 | Name | `TransNova Network Control Tower` |
 | Agent type | `Custom API Agent` |
 | Start command | `python -m agents.control_tower.main` |
-| Port | `8000` |
+| Port | `8080` |
 | OpenAPI Spec Path | `agents/control_tower/openapi.yaml` |
 | Auto Instrumentation | `ON` |
 
@@ -373,7 +399,7 @@ Use the same LLM and Logistics Core configuration.
 
 | Variable | Used by | Required | Description |
 |---|---|---|---|
-| `PORT` | All services | No | Runtime port. Defaults to `8000`. |
+| `PORT` | Custom API Agents | No | Custom API runtime port. Defaults to `8080`; Agent Manager injects the configured port. Chat Agents ignore this variable and always listen on `8000`. |
 | `OPENAI_MODEL` | Functional agents | No | Model name. Defaults to `gpt-4o`. |
 | `OPENAI_URL` | Functional agents | Governed mode | Injected by Agent Manager from the attached LLM Service Provider. |
 | `OPENAI_API_KEY` | Functional agents | Governed mode | Injected gateway credential. |
@@ -664,6 +690,31 @@ Why should BRX-784540 wait rather than receive premium recovery capacity?
 ## Network Control Tower
 
 Use `/disruptions/analyze` with `use_llm: false` first to prove deterministic business logic without an LLM dependency. Then repeat with `use_llm: true` to demonstrate a governed model creating an operational brief from the exact same source data.
+
+---
+
+<!-- amp-troubleshooting -->
+# AMP troubleshooting
+
+## Pod stays Pending with `Insufficient cpu`
+
+Increase the AMP VM capacity. The complete demo has been validated with **8 vCPU / 16 GB RAM**.
+
+## `CreateContainerConfigError` after restarting AMP
+
+If events report a generated runtime secret as missing, inspect the External Secrets chain before rebuilding the agent:
+
+```bash
+./amp.sh k get externalsecret -A | grep transnova
+./amp.sh k get pushsecret -A | grep transnova
+./amp.sh k get secret -A | grep transnova
+```
+
+The source `PushSecret` may need to reconcile with the backing secret store before the downstream `ExternalSecret` can recreate the runtime Kubernetes Secret. Once the secret exists, the existing pod can recover without a source rebuild.
+
+## Logs are initially empty
+
+The Python auto-instrumentation init container runs before the application process. Logs can initially be empty or contain only instrumentation setup.
 
 ---
 

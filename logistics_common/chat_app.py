@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 import threading
 import time
 from collections import defaultdict
@@ -22,6 +21,7 @@ from pydantic import BaseModel, Field
 
 from .config import OPENAI_MODEL, llm_health, resolve_llm_config
 from .core_client import CORE
+from .runtime import chat_agent_port
 
 MAX_SESSION_MESSAGES = 40
 
@@ -81,7 +81,7 @@ def create_chat_app(*, name: str, slug: str, description: str, system_prompt: st
             "ok": True,
             "name": slug,
             "agent_display_name": name,
-            "port": int(os.getenv("PORT", "8000")),
+            "port": chat_agent_port(),
             "llm": llm_health(),
             "logistics_core": {
                 "url": CORE.base_url,
