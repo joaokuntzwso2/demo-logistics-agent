@@ -317,6 +317,28 @@ class LogisticsStore:
                 "sla": self.sla(tracking),
             }
 
+    def catalog(self) -> dict[str, Any]:
+        """Return the complete deterministic demo dataset for transparent inspection."""
+        with self._lock:
+            return {
+                "mocked": True,
+                "resettable": True,
+                "scenario": self.scenario(),
+                "customers": deepcopy(self._state["customers"]),
+                "orders": deepcopy(self._state["orders"]),
+                "shipments": deepcopy(self._state["shipments"]),
+                "tracking_events": deepcopy(self._state["tracking_events"]),
+                "disruptions": deepcopy(self._state["disruptions"]),
+                "recovery_options": deepcopy(self._state["recovery_options"]),
+                "incidents": deepcopy(self._state["incidents"]),
+                "facilities": deepcopy(self._state["facilities"]),
+                "mutable_state": {
+                    "cases": deepcopy(list(self._state["cases"].values())),
+                    "notifications": deepcopy(self._state["notifications"]),
+                    "recovery_actions": deepcopy(self._state["recovery_actions"]),
+                },
+            }
+
     def state_summary(self) -> dict[str, Any]:
         with self._lock:
             return {

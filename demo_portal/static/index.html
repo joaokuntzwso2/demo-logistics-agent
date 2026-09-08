@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TransNova Logistics AI Operations</title>
+  <meta name="description" content="TransNova Logistics multi-agent AI operations demo portal" />
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">TN</div>
+        <div><div class="brand-name">TransNova</div><div class="brand-sub">AI Operations</div></div>
+      </div>
+      <nav class="nav" aria-label="Primary navigation">
+        <button class="nav-item active" data-view="story"><span class="nav-icon">◫</span><span>Story Mode</span></button>
+        <button class="nav-item" data-view="tower"><span class="nav-icon">⌁</span><span>Control Tower</span></button>
+        <button class="nav-item" data-view="agents"><span class="nav-icon">✦</span><span>Agent Workbench</span></button>
+        <button class="nav-item" data-view="mock"><span class="nav-icon">⌘</span><span>Mock Data</span></button>
+      </nav>
+      <div class="sidebar-spacer"></div>
+      <div class="env-card">
+        <div class="eyebrow">DEMO ENVIRONMENT</div>
+        <div class="env-line"><span class="status-dot warning"></span><span>Fictional company</span></div>
+        <div class="env-line"><span class="status-dot ok"></span><span>Shared mutable state</span></div>
+        <div class="env-line"><span class="status-dot info"></span><span>Governed AI agents</span></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <div class="breadcrumb">Operations / <span id="page-title">Guided disruption story</span></div>
+          <h1 id="header-title">GRU Weather Disruption</h1>
+        </div>
+        <div class="top-actions">
+          <div class="scenario-pill"><span class="pulse-dot"></span><span>Simulation active</span></div>
+          <button class="btn ghost" id="refresh-btn">Refresh</button>
+          <button class="btn danger-outline" id="reset-btn">Reset demo</button>
+        </div>
+      </header>
+
+      <div id="global-banner" class="global-banner hidden"></div>
+
+      <section id="view-story" class="view active">
+        <div class="hero-grid">
+          <article class="hero-card alert-card">
+            <div class="hero-topline"><span class="tag danger">MAJOR DISRUPTION</span><span class="muted" id="demo-clock">Demo time —</span></div>
+            <h2>Severe weather is constraining GRU cargo capacity.</h2>
+            <p id="disruption-description">Loading operational context…</p>
+            <div class="route-strip"><span>GRU</span><i></i><span>VCP</span><i></i><span>CNF</span><i></i><span>REC / SSA / BSB</span></div>
+          </article>
+          <article class="hero-card system-card">
+            <div class="card-header-row"><div><div class="eyebrow">PLATFORM STATUS</div><h3>Agent fabric</h3></div><button class="text-btn" data-view-jump="agents">Open workbench →</button></div>
+            <div id="agent-status-list" class="agent-status-list"></div>
+          </article>
+        </div>
+
+        <div class="kpi-grid" id="kpi-grid">
+          <div class="kpi"><div class="kpi-label">Impacted shipments</div><div class="kpi-value" id="kpi-impacted">—</div><div class="kpi-foot">Across active disruption</div></div>
+          <div class="kpi"><div class="kpi-label">Projected SLA misses</div><div class="kpi-value" id="kpi-risk">—</div><div class="kpi-foot">Require prioritization</div></div>
+          <div class="kpi"><div class="kpi-label">Recommended recovery</div><div class="kpi-value" id="kpi-spend">—</div><div class="kpi-foot">Targeted incremental spend</div></div>
+          <div class="kpi"><div class="kpi-label">P1 shipment</div><div class="kpi-value mono" id="kpi-p1">—</div><div class="kpi-foot">Highest business exposure</div></div>
+        </div>
+
+        <div class="section-heading">
+          <div><div class="eyebrow">GUIDED NARRATIVE</div><h2>From customer impact to governed recovery</h2><p>Run each act in sequence. Every step consumes the live deployed agents and the same shared Logistics Core.</p></div>
+          <div class="legend"><span><i class="legend-dot mock"></i>Simulated data</span><span><i class="legend-dot ai"></i>AI agent output</span><span><i class="legend-dot human"></i>Human control</span></div>
+        </div>
+
+        <div class="story-layout">
+          <div class="story-rail" id="story-rail"></div>
+          <div class="story-stage" id="story-stage"></div>
+        </div>
+      </section>
+
+      <section id="view-tower" class="view">
+        <div class="page-grid tower-layout">
+          <div>
+            <div class="section-heading compact"><div><div class="eyebrow">NETWORK INTELLIGENCE</div><h2>Disruption impact & prioritization</h2><p>Deterministic operational facts ranked by business exposure.</p></div><button class="btn primary" id="analyze-btn">Run AI analysis</button></div>
+            <div class="table-card">
+              <table>
+                <thead><tr><th>Priority</th><th>Shipment</th><th>Customer</th><th>SLA</th><th>Recommended recovery</th><th>Cost</th></tr></thead>
+                <tbody id="impact-table"></tbody>
+              </table>
+            </div>
+          </div>
+          <aside class="insight-panel">
+            <div class="panel-label"><span class="source-badge ai">AI AGENT</span><span>Network Control Tower</span></div>
+            <h3>Leadership brief</h3>
+            <div id="tower-summary" class="rich-output empty-state">Run the AI analysis to generate the operations leadership brief.</div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="view-agents" class="view">
+        <div class="section-heading"><div><div class="eyebrow">AGENT WORKBENCH</div><h2>Talk directly to the deployed agents</h2><p>Use curated prompts or ask your own question. Sessions are isolated by agent.</p></div></div>
+        <div class="agent-workbench">
+          <div class="agent-tabs">
+            <button class="agent-tab active" data-agent="customer">Customer Experience</button>
+            <button class="agent-tab" data-agent="exception">Exception Manager</button>
+          </div>
+          <div class="chat-shell">
+            <div class="chat-context" id="chat-context"></div>
+            <div class="chat-messages" id="chat-messages"></div>
+            <div class="prompt-chips" id="prompt-chips"></div>
+            <form class="chat-composer" id="chat-form">
+              <textarea id="chat-input" rows="2" placeholder="Ask the agent about a shipment, customer, SLA, or recovery…"></textarea>
+              <button class="btn primary" type="submit">Send</button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-mock" class="view">
+        <div class="section-heading">
+          <div><div class="eyebrow">DETERMINISTIC DEMO DATA</div><h2>Mock Data Explorer</h2><p>Inspect exactly what is simulated. This is the source-of-truth dataset the agents reason over.</p></div>
+          <span class="source-badge mock large">SIMULATED DATA</span>
+        </div>
+        <div class="mock-layout">
+          <aside class="mock-nav" id="mock-nav"></aside>
+          <div class="mock-content">
+            <div class="mock-toolbar"><div><h3 id="mock-title">Scenario</h3><p id="mock-subtitle">Deterministic identifiers and fixed demo clock.</p></div><div class="toolbar-actions"><input id="mock-search" type="search" placeholder="Filter JSON…"/><button class="btn ghost" id="raw-toggle">Raw JSON</button></div></div>
+            <div id="mock-readable" class="mock-readable"></div>
+            <pre id="mock-json" class="json-view hidden"></pre>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast-container" id="toast-container"></div>
+  <div class="modal-backdrop hidden" id="approval-modal">
+    <div class="modal">
+      <div class="modal-icon">✓</div>
+      <div class="eyebrow">HUMAN-IN-THE-LOOP CONTROL</div>
+      <h2>Approve recovery execution?</h2>
+      <p>This will ask the Shipment Exception Manager to execute <strong>REC-ATL-VCP</strong> for <strong>BRX-784512</strong>, changing the shared mock state.</p>
+      <div class="approval-summary"><div><span>Approver</span><strong>Ana Ribeiro</strong></div><div><span>Reference</span><strong>APPROVED-GRU-0908-01</strong></div><div><span>Incremental cost</span><strong>BRL 1,850</strong></div></div>
+      <div class="modal-actions"><button class="btn ghost" id="approval-cancel">Cancel</button><button class="btn primary" id="approval-confirm">Approve & execute</button></div>
+    </div>
+  </div>
+
+  <script src="/static/app.js" defer></script>
+</body>
+</html>

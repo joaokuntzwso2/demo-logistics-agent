@@ -50,6 +50,11 @@ def reset():
     return STORE.reset()
 
 
+@app.get("/demo/catalog")
+def catalog():
+    return STORE.catalog()
+
+
 @app.get("/demo/state")
 def state_summary():
     return STORE.state_summary()

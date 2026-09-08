@@ -40,6 +40,7 @@ class LogisticsCoreClient:
 
     def health(self): return self._request("GET", "/health")
     def scenario(self): return self._request("GET", "/demo/scenario")
+    def catalog(self): return self._request("GET", "/demo/catalog")
     def customer(self, customer_id: str): return self._request("GET", f"/customers/{customer_id}")
     def customer_orders(self, customer_id: str): return self._request("GET", f"/customers/{customer_id}/orders")
     def order(self, order_id: str): return self._request("GET", f"/orders/{order_id}")

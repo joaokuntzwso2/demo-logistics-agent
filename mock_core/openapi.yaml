@@ -14,6 +14,11 @@ paths:
       operationId: getDemoScenario
       responses:
         '200': {description: Demo identifiers and scenario}
+  /demo/catalog:
+    get:
+      operationId: getDemoCatalog
+      responses:
+        '200': {description: Complete deterministic mock dataset for demo transparency}
   /demo/reset:
     post:
       operationId: resetDemo

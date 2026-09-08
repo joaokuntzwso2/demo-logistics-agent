@@ -124,6 +124,12 @@ The demo intentionally demonstrates that **not every delayed shipment should rec
 ├── requirements.txt
 ├── Dockerfile
 ├── .env.example
+├── .env.portal.example        # Professional demo portal endpoint mapping
+├── demo_portal/               # Professional storytelling UI + secure server-side proxy
+│   ├── app.py
+│   ├── client.py
+│   ├── config.py
+│   └── static/
 ├── logistics_common/
 │   ├── chat_app.py            # Shared WSO2 /chat runtime + LangGraph execution
 │   ├── config.py              # Governed/direct OpenAI configuration
@@ -152,8 +158,78 @@ The demo intentionally demonstrates that **not every delayed shipment should rec
 └── tests/
     ├── conftest.py
     ├── test_core_api.py
+    ├── test_demo_portal.py
     └── test_store.py
 ```
+
+---
+
+# Professional Demo Portal
+
+The repository includes a presentation-ready **TransNova Logistics AI Operations Portal**. It is a real FastAPI application that consumes the four deployed Agent Manager workloads and presents the scenario as a guided business story instead of exposing raw agent endpoints.
+
+The portal provides four surfaces:
+
+1. **Story Mode** — a six-act guided flow from the customer call through network prioritization, exception recovery, explicit human approval, shared-state verification, and proactive customer communication.
+2. **Control Tower** — ranked disruption impact plus the live AI-generated operations leadership brief.
+3. **Agent Workbench** — direct user-friendly chat access to Customer Experience and Shipment Exception Manager with curated prompts.
+4. **Mock Data Explorer** — a transparent view of the complete deterministic source-of-truth dataset. Every simulated record is visibly labeled as mock data, while AI-generated content is labeled separately.
+
+The browser never receives Agent Manager API keys. The FastAPI portal acts as a server-side proxy and injects `X-API-Key` when calling each deployed workload.
+
+## Configure the portal against Agent Manager
+
+Copy the example configuration:
+
+```bash
+cp .env.portal.example .env.portal
+```
+
+Fill the four deployed endpoint URLs and API keys:
+
+```text
+PORTAL_CORE_URL=...
+PORTAL_CORE_API_KEY=...
+PORTAL_CUSTOMER_AGENT_URL=...
+PORTAL_CUSTOMER_AGENT_API_KEY=...
+PORTAL_EXCEPTION_AGENT_URL=...
+PORTAL_EXCEPTION_AGENT_API_KEY=...
+PORTAL_CONTROL_TOWER_URL=...
+PORTAL_CONTROL_TOWER_API_KEY=...
+```
+
+The already validated Core endpoint in the local AMP setup is:
+
+```text
+http://default-default.am-gateway.localhost:19080/transnova-logistics-core
+```
+
+Use the corresponding Agent Manager endpoint displayed for each other workload. Do not expose these API keys in frontend JavaScript.
+
+## Run the portal
+
+```bash
+source .venv/bin/activate
+./scripts/run-demo-portal.sh
+```
+
+Open:
+
+```text
+http://localhost:8090
+```
+
+Before a presentation, use **Reset demo** in the top-right corner. It calls the shared Core `/demo/reset` endpoint, clears mutable cases/notifications/recovery actions, and returns the storytelling flow to the deterministic baseline.
+
+## Mock transparency endpoint
+
+The Logistics Core exposes:
+
+```text
+GET /demo/catalog
+```
+
+This read-only endpoint contains the complete synthetic dataset used by the demo: scenario identifiers, customers, orders, shipments, tracking events, disruptions, recovery options, incidents, facilities, and mutable state. The portal's **Mock Data Explorer** consumes this endpoint directly.
 
 ---
 
@@ -191,7 +267,7 @@ pytest -q
 Expected result:
 
 ```text
-11 passed
+13 passed
 ```
 
 ---
