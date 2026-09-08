@@ -1,0 +1,158 @@
+openapi: 3.0.3
+info:
+  title: TransNova Logistics Core Mock API
+  version: 1.0.0
+  description: Shared deterministic in-memory system-of-record facade for the multi-agent logistics demo.
+paths:
+  /health:
+    get:
+      operationId: health
+      responses:
+        '200': {description: Healthy}
+  /demo/scenario:
+    get:
+      operationId: getDemoScenario
+      responses:
+        '200': {description: Demo identifiers and scenario}
+  /demo/reset:
+    post:
+      operationId: resetDemo
+      responses:
+        '200': {description: Demo state reset}
+  /demo/state:
+    get:
+      operationId: getDemoState
+      responses:
+        '200': {description: Mutable demo state}
+  /customers:
+    get:
+      operationId: listCustomers
+      responses:
+        '200': {description: Customers}
+  /customers/{customer_id}:
+    get:
+      operationId: getCustomer
+      parameters:
+        - {in: path, name: customer_id, required: true, schema: {type: string}}
+      responses:
+        '200': {description: Customer}
+        '404': {description: Not found}
+  /customers/{customer_id}/orders:
+    get:
+      operationId: listCustomerOrders
+      parameters:
+        - {in: path, name: customer_id, required: true, schema: {type: string}}
+      responses:
+        '200': {description: Customer orders}
+  /orders/{order_id}:
+    get:
+      operationId: getOrder
+      parameters:
+        - {in: path, name: order_id, required: true, schema: {type: string}}
+      responses:
+        '200': {description: Order and shipments}
+  /shipments/{tracking_number}:
+    get:
+      operationId: getShipment
+      parameters:
+        - {in: path, name: tracking_number, required: true, schema: {type: string}}
+      responses:
+        '200': {description: Shipment}
+  /shipments/{tracking_number}/events:
+    get:
+      operationId: getTrackingEvents
+      parameters:
+        - {in: path, name: tracking_number, required: true, schema: {type: string}}
+      responses:
+        '200': {description: Tracking events}
+  /shipments/{tracking_number}/sla:
+    get:
+      operationId: getShipmentSla
+      parameters:
+        - {in: path, name: tracking_number, required: true, schema: {type: string}}
+      responses:
+        '200': {description: SLA projection}
+  /shipments/{tracking_number}/recovery-options:
+    get:
+      operationId: getRecoveryOptions
+      parameters:
+        - {in: path, name: tracking_number, required: true, schema: {type: string}}
+      responses:
+        '200': {description: Recovery options}
+  /shipments/{tracking_number}/cases:
+    post:
+      operationId: createCustomerCase
+      parameters:
+        - {in: path, name: tracking_number, required: true, schema: {type: string}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason: {type: string}
+                owner: {type: string, default: Customer Care}
+      responses:
+        '200': {description: Case}
+  /shipments/{tracking_number}/notifications:
+    post:
+      operationId: queueNotification
+      parameters:
+        - {in: path, name: tracking_number, required: true, schema: {type: string}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [message]
+              properties:
+                channel: {type: string, enum: [email, sms, whatsapp], default: email}
+                message: {type: string}
+      responses:
+        '200': {description: Notification}
+  /shipments/{tracking_number}/recovery:
+    post:
+      operationId: executeRecovery
+      parameters:
+        - {in: path, name: tracking_number, required: true, schema: {type: string}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [option_id, approved_by]
+              properties:
+                option_id: {type: string}
+                approved_by: {type: string}
+                approval_reference: {type: string, nullable: true}
+      responses:
+        '200': {description: Recovery result}
+        '409': {description: Invalid recovery option}
+  /exceptions:
+    get:
+      operationId: listExceptions
+      responses:
+        '200': {description: Exception shipments}
+  /disruptions:
+    get:
+      operationId: listDisruptions
+      responses:
+        '200': {description: Network disruptions}
+  /disruptions/{disruption_id}:
+    get:
+      operationId: getDisruption
+      parameters:
+        - {in: path, name: disruption_id, required: true, schema: {type: string}}
+      responses:
+        '200': {description: Disruption}
+  /disruptions/{disruption_id}/impact:
+    get:
+      operationId: getDisruptionImpact
+      parameters:
+        - {in: path, name: disruption_id, required: true, schema: {type: string}}
+      responses:
+        '200': {description: Ranked impacted shipments}

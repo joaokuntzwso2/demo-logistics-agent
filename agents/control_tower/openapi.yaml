@@ -1,0 +1,116 @@
+openapi: 3.0.3
+info:
+  title: TransNova Network Control Tower Agent API
+  version: 1.0.0
+  description: Event-driven disruption analysis and approved recovery execution for the logistics demo.
+paths:
+  /health:
+    get:
+      operationId: health
+      summary: Health and runtime configuration
+      responses:
+        '200':
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /disruptions/analyze:
+    post:
+      operationId: analyzeDisruption
+      summary: Analyze and prioritize a network disruption
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnalyzeDisruptionRequest'
+      responses:
+        '200':
+          description: Ranked disruption analysis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ControlTowerResponse'
+  /disruptions/{disruption_id}/impact:
+    get:
+      operationId: getDisruptionImpact
+      summary: Return deterministic ranked shipment impact
+      parameters:
+        - in: path
+          name: disruption_id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Ranked impacted shipments
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /recoveries/execute:
+    post:
+      operationId: executeApprovedRecovery
+      summary: Execute a human-approved recovery action
+      description: Requires approver identity and an explicit approval reference.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExecuteRecoveryRequest'
+      responses:
+        '200':
+          description: Recovery execution result
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+components:
+  schemas:
+    AnalyzeDisruptionRequest:
+      type: object
+      properties:
+        disruption_id:
+          type: string
+          default: DISR-GRU-0908
+        use_llm:
+          type: boolean
+          default: true
+    ExecuteRecoveryRequest:
+      type: object
+      required: [tracking_number, option_id, approved_by, approval_reference]
+      properties:
+        tracking_number:
+          type: string
+          example: BRX-784512
+        option_id:
+          type: string
+          example: REC-ATL-VCP
+        approved_by:
+          type: string
+          example: Joao Kuntz
+        approval_reference:
+          type: string
+          example: APPROVED-DEMO-001
+        notify_customer:
+          type: boolean
+          default: false
+        notification_message:
+          type: string
+          nullable: true
+    ControlTowerResponse:
+      type: object
+      required: [disruption_id, summary, data]
+      properties:
+        disruption_id:
+          type: string
+        summary:
+          type: string
+        data:
+          type: object
+          additionalProperties: true
