@@ -46,8 +46,14 @@ class PortalGateway:
                 return response.json()
         except httpx.HTTPStatusError as exc:
             body = exc.response.text[:1000]
+            hint = ""
+            if exc.response.status_code == 401:
+                hint = (
+                    " Check the endpoint-specific API key in .env.portal. "
+                    "Each Agent Manager workload uses its own credential; do not reuse another workload's key."
+                )
             raise PortalUpstreamError(
-                f"{target.name} returned HTTP {exc.response.status_code}: {body}"
+                f"{target.name} returned HTTP {exc.response.status_code}: {body}{hint}"
             ) from exc
         except httpx.HTTPError as exc:
             raise PortalUpstreamError(f"Could not reach {target.name} at {target.url}: {exc}") from exc

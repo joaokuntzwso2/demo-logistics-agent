@@ -970,3 +970,154 @@ https://github.com/joaokuntzwso2/demo-logistics-agent
 ```
 
 Designed as a repeatable customer demo for multi-agent logistics operations on WSO2 Agent Manager / AMP.
+
+<!-- TRANSNOVA_FINAL_RUNBOOK_START -->
+
+# Demo-day runbook and portal credentials
+
+## Validated AMP baseline
+
+The complete demo was validated locally with:
+
+```text
+8 vCPU
+16 GB RAM
+60 GB disk
+```
+
+A 4-vCPU AMP VM produced `FailedScheduling: Insufficient cpu` once the full workload set was deployed. The application repository documents the requirement; the actual VM sizing remains in the local `am-smart-tool/amp.conf`.
+
+## Portal endpoint authentication
+
+The local AMP gateway requires an API key for each deployed workload in this demo. Create a **separate** portal credential under **Security -> Credentials** for each workload:
+
+```text
+TransNova Logistics Core
+TransNova Customer Experience
+TransNova Shipment Exception Manager
+TransNova Network Control Tower
+```
+
+A useful credential name is:
+
+```text
+transnova-demo-portal
+```
+
+The four values belong only in `.env.portal`:
+
+```text
+PORTAL_CORE_API_KEY=...
+PORTAL_CUSTOMER_AGENT_API_KEY=...
+PORTAL_EXCEPTION_AGENT_API_KEY=...
+PORTAL_CONTROL_TOWER_API_KEY=...
+```
+
+Do **not** reuse the Core key for a Chat Agent or the Control Tower. API keys are endpoint/workload-specific. These credentials are distinct from the governed LLM variables `OPENAI_URL` and `OPENAI_API_KEY`.
+
+`.env.portal` is intentionally ignored by Git and must never be committed.
+
+### Base URL rule
+
+Configure base workload URLs only:
+
+```text
+Customer Experience       http://.../transnova-customer-experi
+Exception Manager         http://.../transnova-shipment-except
+Network Control Tower     http://.../transnova-network-control-tower
+Logistics Core            http://.../transnova-logistics-core
+```
+
+Do not append `/chat`, `/disruptions/analyze`, or `/demo/catalog`; the portal adds those operation paths itself.
+
+## One-command preflight
+
+Before presenting, validate all four gateway endpoints, authentication, deterministic mock data, and repository secret hygiene:
+
+```bash
+./scripts/smoke-test-demo.sh
+```
+
+The smoke test is deliberately non-mutating:
+
+- Customer Experience reads order status only.
+- Shipment Exception Manager investigates but is explicitly told not to execute recovery.
+- Network Control Tower runs with `use_llm=false`.
+- Logistics Core verifies `/demo/catalog` and the showcase identifiers.
+- `.env.portal` is checked to ensure it is not tracked by Git.
+
+Expected final line:
+
+```text
+READY: TransNova demo preflight passed.
+```
+
+## Start clean
+
+Reset immediately before the customer presentation using the portal's **Reset demo** button or:
+
+```http
+POST /demo/reset
+```
+
+The reset restores the deterministic baseline. The demo clock intentionally remains:
+
+```text
+2026-09-08T09:15:00-03:00
+```
+
+Do not replace it with the system clock. Fixed time guarantees reproducible SLA calculations, prioritization, ETAs, and recovery recommendations.
+
+## Recommended storytelling order
+
+1. **Customer Experience** — Atlas Medical asks about `ORD-ATL-1007`; establish the customer and SLA problem.
+2. **Network Control Tower** — analyze `DISR-GRU-0908`; show P1/P2/P4 prioritization and where recovery spend creates value.
+3. **Shipment Exception Manager** — investigate `BRX-784512`; compare every recovery option without execution.
+4. **Human approval** — approve `REC-ATL-VCP` with `Ana Ribeiro` / `APPROVED-GRU-0908-01`.
+5. **Shared-state proof** — return to Customer Experience and show that it independently sees the revised ETA and executed recovery.
+6. **Customer communication** — queue the proactive update to Marina Costa.
+7. **Mock Data Explorer** — show exactly what was deterministic fixture data and what changed during the demonstration.
+8. **Observability / LLM governance** — close with Agent Manager tracing and governed LLM configuration.
+
+This sequence demonstrates three distinct AI interaction patterns while keeping a single operational source of truth:
+
+```text
+Customer Experience          Chat Agent / customer-facing reasoning
+Shipment Exception Manager   Chat Agent / operations + human-in-the-loop
+Network Control Tower        Custom API Agent / event-driven network intelligence
+Logistics Core               Shared deterministic operational API (not an AI agent)
+```
+
+## Mock-data transparency
+
+`GET /demo/catalog` is the canonical read-only inventory of the synthetic scenario. The portal labels this information **SIMULATED DATA**. Agent responses are labeled **AI AGENT**, and the recovery approval is labeled **HUMAN CONTROL**.
+
+The mutable portion starts clean:
+
+```json
+{
+  "cases": [],
+  "notifications": [],
+  "recovery_actions": []
+}
+```
+
+As the demo executes actions, these arrays provide an auditable way to show what actually changed during the session.
+
+## Authentication troubleshooting
+
+A response like:
+
+```json
+{"error":"Unauthorized","message":"Valid API key required"}
+```
+
+means the gateway endpoint is reachable but the portal is missing or using the wrong workload-specific key. Validate `.env.portal`, restart the portal so the file is reloaded, and rerun:
+
+```bash
+./scripts/smoke-test-demo.sh
+```
+
+Do not solve this by putting credentials in frontend JavaScript. The FastAPI portal is intentionally the credential-holding server-side proxy.
+
+<!-- TRANSNOVA_FINAL_RUNBOOK_END -->
