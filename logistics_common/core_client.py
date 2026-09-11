@@ -16,12 +16,21 @@ class LogisticsCoreClient:
     def __init__(self) -> None:
         self.base_url = (os.getenv("LOGISTICS_CORE_URL") or "http://localhost:8010").rstrip("/")
         self.api_key = (os.getenv("LOGISTICS_CORE_API_KEY") or "").strip()
+        self.host_header = (os.getenv("LOGISTICS_CORE_HOST_HEADER") or "").strip()
         self.timeout = float(os.getenv("LOGISTICS_CORE_TIMEOUT_SECONDS", "8"))
 
     def _headers(self) -> dict[str, str]:
         headers = {"Accept": "application/json"}
         if self.api_key:
             headers["X-API-Key"] = self.api_key
+
+        # AMP local gateway uses virtual-host routing.
+        # Inside Kubernetes, *.localhost resolves to loopback by design,
+        # so workloads call host.k3d.internal while preserving the
+        # gateway hostname in the HTTP Host header.
+        if self.host_header:
+            headers["Host"] = self.host_header
+
         return headers
 
     def _request(self, method: str, path: str, **kwargs: Any) -> Any:
